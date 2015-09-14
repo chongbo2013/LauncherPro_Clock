@@ -1,0 +1,17 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/com.example.administrator.flylauncherpro_clockview"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <com.example.administrator.flylauncherpro_clockview.ClockView android:background="#ccc"
+        android:layout_width="match_parent" android:layout_height="300dp"
+        android:padding="10dp"
+        app:TimeTextSize="80sp"
+        app:DateTextSize="20sp"
+        app:TimeTextColor="#33b5e5"
+        app:DateTextColor="#33b5e5"
+        app:LoadingString="Loading ...."
+        app:ShadowColor="#FFFF00FF"
+        app:padTextSize="12sp"
+        app:ClockDrawable="@android:drawable/ic_menu_add" />
+
+</FrameLayout>
