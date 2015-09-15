@@ -1,216 +1,120 @@
 package com.example.administrator.flylauncherpro_clockview;
 
 import android.content.Context;
-import android.content.res.TypedArray;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
-import android.text.TextPaint;
+import android.text.format.DateFormat;
 import android.util.AttributeSet;
-import android.view.View;
+
+import java.util.Calendar;
 
 /**
- * TODO: ferris 自定义时钟
+ * TODO: ferris 处理时钟逻辑
  */
-public class ClockView extends View {
-    private String LoadingString; // 加载中描述
-    private int TimeTextColor = Color.RED; //时间数字的颜色
-    private float TimeTextSize = 0; //时间数字的字体大小
-    private float TimeTextWidth;
-    private float TimeTextHeight;
-    private TextPaint mTimePaint;
-
-
-    private int DateTextColor = Color.RED; //时间数字的颜色
-    private float DateTextSize = 0; //时间数字的字体大小
-    private float DateTextWidth;
-    private float DateTextHeight;
-    private TextPaint mDatePaint;
-    //日期和时间的pading
-    private float padTextSize;
-    private Drawable ClockDrawable;//时钟的整个背景颜色
-    private int ShadowColor=Color.BLACK;
-    private String dateString="";
-    private String timeString="";
+public class ClockView extends ClockViewBase {
+    private String[] months ;
+    private String[] weeks ;
 
     public ClockView(Context context) {
         super(context);
-        init(null, 0);
+        init();
     }
 
     public ClockView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(attrs, 0);
+        init();
     }
 
     public ClockView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init(attrs, defStyle);
+        init();
     }
 
-    private void init(AttributeSet attrs, int defStyle) {
-        // Load attributes
-        final TypedArray a = getContext().obtainStyledAttributes(
-                attrs, R.styleable.ClockView, defStyle, 0);
-        //时钟加载提醒
-        LoadingString = a.getString(
-                R.styleable.ClockView_LoadingString);
-
-        TimeTextColor = a.getColor(
-                R.styleable.ClockView_TimeTextColor,
-                TimeTextColor);
-
-
-        TimeTextSize = a.getDimension(
-                R.styleable.ClockView_TimeTextSize,
-                TimeTextSize);
-
-
-        DateTextColor = a.getColor(
-                R.styleable.ClockView_DateTextColor,
-                DateTextColor);
-
-        DateTextSize = a.getDimension(
-                R.styleable.ClockView_DateTextSize,
-                DateTextSize);
-        padTextSize = a.getDimension(
-                R.styleable.ClockView_padTextSize,
-                padTextSize);
-        ShadowColor = a.getColor(
-                R.styleable.ClockView_ShadowColor,
-                ShadowColor);
-        if (a.hasValue(R.styleable.ClockView_ClockDrawable)) {
-            ClockDrawable = a.getDrawable(
-                    R.styleable.ClockView_ClockDrawable);
-            ClockDrawable.setCallback(this);
-        }
-
-        a.recycle();
-
-        // Set up a default TextPaint object
-        mTimePaint = new TextPaint();
-        mTimePaint.setFlags(Paint.ANTI_ALIAS_FLAG);
-        mTimePaint.setTextAlign(Paint.Align.LEFT);
-
-        mDatePaint = new TextPaint();
-        mDatePaint.setFlags(Paint.ANTI_ALIAS_FLAG);
-        mDatePaint.setTextAlign(Paint.Align.LEFT);
-
-        // 时间发生改变
+    public void init(){
+       months = getContext().getResources().getStringArray(R.array.mounth);
+       weeks = getContext().getResources().getStringArray(R.array.week);
         timeChage();
     }
-
-
-    public void timeChage(){
-        invalidateTextPaintAndMeasurementsTime("16:38");
-        invalidateTextPaintAndMeasurementsDate("9月14日 周一");
+    @Override
+    public void timeChage() {
+        invalidateTextPaintAndMeasurementsTime(getTime());
+        invalidateTextPaintAndMeasurementsDate(getDate());
         postInvalidate();
     }
-    //初始化时间字体大小
-    private void invalidateTextPaintAndMeasurementsTime(String mTime) {
-        timeString=mTime;
-        mTimePaint.setTextSize(TimeTextSize);
-        mTimePaint.setColor(TimeTextColor);
-        mTimePaint.setFakeBoldText(true);
-        // 设定阴影(柔边, X 轴位移, Y 轴位移, 阴影颜色)
-        mTimePaint.setShadowLayer(5, 3, 3, ShadowColor);
-        TimeTextWidth = mTimePaint.measureText(timeString);
-        Paint.FontMetrics fontMetrics = mTimePaint.getFontMetrics();
-        TimeTextHeight = fontMetrics.bottom;
-    }
 
-    //初始化日期字体的大小
-    private void invalidateTextPaintAndMeasurementsDate(String mDate) {
-        dateString=mDate;
-        mDatePaint.setTextSize(DateTextSize);
-        mDatePaint.setColor(DateTextColor);
-        // 设定阴影(柔边, X 轴位移, Y 轴位移, 阴影颜色)
-        mDatePaint.setShadowLayer(5, 3, 3, ShadowColor);
-        DateTextWidth = mDatePaint.measureText(dateString);
-        Paint.FontMetrics fontMetrics = mDatePaint.getFontMetrics();
-        DateTextHeight = fontMetrics.bottom;
-    }
+    private String getTime() {
+        StringBuilder builder = new StringBuilder();
+        // 时间
+        boolean format24 = DateFormat.is24HourFormat(getContext());
+        Calendar c = Calendar.getInstance();
+        int hour12 = c.get(Calendar.HOUR);
+        int hour24 = c.get(Calendar.HOUR_OF_DAY);
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-
-        // TODO: consider storing these as member variables to reduce
-        // allocations per draw cycle.
-        int paddingLeft = getPaddingLeft();
-        int paddingTop = getPaddingTop();
-        int paddingRight = getPaddingRight();
-        int paddingBottom = getPaddingBottom();
-
-        int contentWidth = getWidth() - paddingLeft - paddingRight;
-        int contentHeight = getHeight() - paddingTop - paddingBottom;
-
-        int centeYLine = paddingTop + contentHeight / 2;//中心线
-
-        // Draw the time.
-        canvas.drawText(timeString,
-                paddingLeft + (contentWidth - TimeTextWidth) / 2,
-                centeYLine-padTextSize/2-TimeTextHeight,
-                mTimePaint);
-
-        //Draw the date
-        canvas.drawText(dateString,
-                paddingLeft + (contentWidth - DateTextWidth) / 2,
-                centeYLine+padTextSize/2,
-                mDatePaint);
-
-        // Draw the clock drawable on top of the text.
-        if (ClockDrawable != null) {
-            ClockDrawable.setBounds(paddingLeft, paddingTop,
-                    paddingLeft + contentWidth, paddingTop + contentHeight);
-            ClockDrawable.draw(canvas);
+        if (format24) {
+            builder.append(hour24);
+        } else {
+            hour12 = hour12 == 0 ? 12 : hour12;
+            builder.append(hour12);
         }
+        builder.append(":");
+        int minute = c.get(Calendar.MINUTE);
+        builder.append(minute);
+        return builder.toString();
     }
 
-
-    public int getTimeTextColor() {
-        return TimeTextColor;
+    private String getDate() {
+        Calendar c = Calendar.getInstance();
+        int week = c.get(Calendar.DAY_OF_WEEK); // 1-7
+        int month = c.get(Calendar.MONTH) + 1;  // 1-12
+        int day = c.get(Calendar.DAY_OF_MONTH); // 1-30
+        return getDate(getMonth(month), getDay(day), getWeek(week));
     }
 
-    public void setTimeTextColor(int exampleColor) {
-        TimeTextColor = exampleColor;
-        timeChage();
+    private String getDate(String mMonth, String mDay, String mWeek) {
+        StringBuilder builder = new StringBuilder();
+        // 语言判断
+        String week = weeks[0];
+        if (week.equals("周")) {
+            builder.append(mMonth)
+                    .append(mDay)
+                    .append(" ")
+                    .append(mWeek);
+        } else {
+            builder.append(mWeek)
+                    .append(" ")
+                    .append(mMonth)
+                    .append(".")
+                    .append(mDay);
+        }
+        return builder.toString();
     }
 
-    public float getTimeDimension() {
-        return TimeTextSize;
+    public String getMonth(int month) {
+        if (month < 1 || month > 12) {
+            return "";
+        }
+
+        if (months != null && months.length > month) {
+            return months[month];
+        }
+
+        return "";
     }
 
-    public void setTimeDimension(float exampleDimension) {
-        TimeTextSize = exampleDimension;
-        timeChage();
+    public String getWeek(int week) {
+        if (week < 1 || week > 7) {
+            return "";
+        }
+
+        if (weeks != null && weeks.length > week) {
+            return weeks[week];
+        }
+        return "";
     }
 
-    public int getDateTextColor() {
-        return DateTextColor;
-    }
+    public String getDay(int day) {
+        if (day < 1 || day > 31) {
+            return "";
+        }
+        return String.valueOf(day);
 
-    public void setDateTextColor(int exampleColor) {
-        DateTextColor = exampleColor;
-        timeChage();
-    }
-
-    public float getDateDimension() {
-        return DateTextSize;
-    }
-
-    public void setDateDimension(float exampleDimension) {
-        DateTextSize = exampleDimension;
-        timeChage();
-    }
-
-
-    public Drawable getClockDrawable() {
-        return ClockDrawable;
-    }
-
-    public void setClockDrawable(Drawable exampleDrawable) {
-        ClockDrawable = exampleDrawable;
     }
 }
